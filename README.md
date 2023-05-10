@@ -18,12 +18,13 @@ The state space has 37 dimensions and contains the agent's velocity, along with 
 - **`2`** - turn left.
 - **`3`** - turn right.
 
-The task is episodic, and in order to solve the environment, the agent must get an average score of +13 over 100 consecutive episodes.The reward goal can be modified by adjusting the REWARD_GOAL in train_agent.py.
+The task is episodic, and in order to solve the environment, the agent must get an average score of +13 over 100 consecutive episodes. The reward goal can be modified by adjusting the REWARD_GOAL in train_agent.py if desired.
 
 ### Getting Started
 
 1. Set up conda environment using the following instructions: https://github.com/udacity/Value-based-methods#dependencies
-2. Download the environment from one of the links below.  You need only select the environment that matches your operating system:
+2. Install seaborn for plotting (pip install seaborn)
+3. Download the environment from one of the links below.  You need only select the environment that matches your operating system:
     - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux.zip)
     - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana.app.zip)
     - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Windows_x86.zip)
@@ -33,7 +34,8 @@ The task is episodic, and in order to solve the environment, the agent must get 
 
     (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux_NoVis.zip) to obtain the environment.
 
-3. Place the file in the folder with this README and unzip (or decompress) the file. 
+3. Place the file in the folder with this README and unzip (or decompress) the file.
+4. Based on which file was downloaded for your operating system, update ENV_PATH to the "OS folder/environment file" (e.g. Banana_Windows_x86_64/Banana.exe").
 
 ### Training an Agent
 1. Run train_agents.py within the conda environment. Training will automatically stop once the goal is reached.
