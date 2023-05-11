@@ -20,6 +20,10 @@ The state space has 37 dimensions and contains the agent's velocity, along with 
 
 The task is episodic, and in order to solve the environment, the agent must get an average score of +13 over 100 consecutive episodes. The reward goal can be modified by adjusting the REWARD_GOAL in train_agent.py if desired.
 
+The particular implementation uses a DQN with primary and fixed Q-Networks. The Q-Network value function is approximated with a simple linear neural network. Lags to the input states are introduced to provide time-series information to the linear neural network. Over 10 seed iterations of training, the agents were able to solve the problem in an average of 366&pm;51 episodes. The code primarily builds off the Udacity DQN solution from the exercise shown here: https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn
+
+See below for instructions on how to train and run agents.
+
 ### Getting Started
 
 1. Set up conda environment using the following instructions: https://github.com/udacity/Value-based-methods#dependencies
