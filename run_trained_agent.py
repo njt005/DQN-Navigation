@@ -4,13 +4,10 @@ import torch
 from unityagents import UnityEnvironment
 
 from model import Network
-from train_agent import N_LAGS, HIDDEN_SIZES
+from train_agent import N_LAGS, HIDDEN_SIZES, ENV_PATH
 
-# Agent
-# Environment - update based on Unity environment location
-# Put folder in same directory as this file
-ENV_PATH = "Banana_Windows_x86_64/Banana.exe"
-SAVED_MODEL = "models/q_final_n333.pt"
+# Which trained agent to load
+SEED = 1
 
 
 def main():
@@ -30,8 +27,9 @@ def main():
     q_net = Network(
         state_size=state_size, action_size=action_size, hidden_sizes=HIDDEN_SIZES
     )
-    model_path = os.path.join(base_path, SAVED_MODEL)
-    q_net.load_state_dict(torch.load(model_path))
+    model_path = os.path.join(base_path, "models", str(SEED))
+    model_name = os.listdir(model_path)[0]  # Just get first model if more than 1
+    q_net.load_state_dict(torch.load(os.path.join(model_path, model_name)))
     q_net.eval()
 
     # Watch single episode
@@ -57,6 +55,7 @@ def main():
             break
 
     print(f"Single episode score: {score}")
+    env.close()
 
 
 if __name__ == "__main__":

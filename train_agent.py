@@ -1,12 +1,13 @@
 import os
 import typing as t
 import numpy as np
+import pandas as pd
 import torch
 from collections import deque
 from unityagents import UnityEnvironment
 
 from agent import Agent
-from plotting import create_reward_plot
+from plotting import create_reward_plot, create_seaborn_barplot
 
 # Agent parameters
 BUFFER_SIZE = 100_000
@@ -16,7 +17,6 @@ TAU = 1e-3
 LEARNING_RATE = 1e-3
 UPDATE_EVERY = 4
 HIDDEN_SIZES = (128, 64)
-SEED = 1
 
 # Environment - update based on Unity environment location
 # Put folder in same directory as this file
@@ -30,7 +30,8 @@ EPSILON = 1.0
 EPSILON_DECAY = 1e-2
 EPSILON_MIN = 1e-2
 N_LAGS = 4
-PLOT_REWARD = True
+PLOT_RESULTS = True
+N_TRAINING_SEEDS = 10
 
 
 def train_agent(
@@ -141,7 +142,7 @@ def train_agent(
                 )
             )
             if save_path is not None:
-                model_save_path = os.path.join(save_path, "models")
+                model_save_path = os.path.join(save_path, "models", f"{agent.seed}")
                 if not os.path.exists(model_save_path):
                     os.makedirs(model_save_path)
 
@@ -149,25 +150,41 @@ def train_agent(
                     agent.qnetwork_local.state_dict(),
                     os.path.join(model_save_path, f"q_final_n{episode-100}.pt"),
                 )
-                env.close()
             break
 
     if plot_reward:
         if save_path is not None:
-            figure_save_path = os.path.join(save_path, "figures")
-            if not os.path.exists(figure_save_path):
-                os.makedirs(figure_save_path)
+            results_save_path = os.path.join(save_path, "results", f"{agent.seed}")
+            if not os.path.exists(results_save_path):
+                os.makedirs(results_save_path)
         create_reward_plot(
             scores=scores,
-            smooth_n=100,
-            save_path=os.path.join(figure_save_path, f"scores_n{episode-100}.png"),
+            smooth_n=10,
+            save_path=os.path.join(results_save_path, f"scores_n{episode-100}.png"),
         )
+
+    # Log training run
+    log_dict = {
+        "Seed": agent.seed,
+        "Reward Goal": reward_goal,
+        "N Lags": n_lags,
+        "N Episodes": episode - 100,
+    }
+
+    return pd.DataFrame([log_dict])
 
 
 def main():
-    # Initialize environment and get env info to initialize Agent
+    # Set up paths
     base_path = os.path.dirname(os.path.abspath(__file__))
     env_full_path = os.path.join(base_path, ENV_PATH)
+
+    # Results to save df and figures
+    results_save_path = os.path.join(base_path, "results")
+    if not os.path.exists(results_save_path):
+        os.makedirs(results_save_path)
+
+    # Initialize environment and get env info to initialize Agent
     env = UnityEnvironment(file_name=env_full_path)
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
@@ -177,34 +194,51 @@ def main():
         state_size = state_size * (N_LAGS + 1)
     action_size = brain.vector_action_space_size
 
-    # Initialize agent
-    agent = Agent(
-        state_size=state_size,
-        action_size=action_size,
-        hidden_sizes=HIDDEN_SIZES,
-        learning_rate=LEARNING_RATE,
-        gamma=GAMMA,
-        batch_size=BATCH_SIZE,
-        buffer_size=BUFFER_SIZE,
-        update_every=UPDATE_EVERY,
-        tau=TAU,
-        seed=SEED,
-    )
+    df = pd.DataFrame()
+    for i in range(N_TRAINING_SEEDS):
+        print(
+            f"--------------------Training seed {i+1}/{N_TRAINING_SEEDS}--------------------"
+        )
+        # Initialize agent
+        agent = Agent(
+            state_size=state_size,
+            action_size=action_size,
+            hidden_sizes=HIDDEN_SIZES,
+            learning_rate=LEARNING_RATE,
+            gamma=GAMMA,
+            batch_size=BATCH_SIZE,
+            buffer_size=BUFFER_SIZE,
+            update_every=UPDATE_EVERY,
+            tau=TAU,
+            seed=i + 1,
+        )
 
-    train_agent(
-        agent=agent,
-        env=env,
-        brain_name=brain_name,
-        epsilon=EPSILON,
-        epsilon_decay=EPSILON_DECAY,
-        epsilon_min=EPSILON_MIN,
-        n_episodes=N_EPISODES,
-        max_iter_episode=MAX_ITER_EPISODE,
-        reward_goal=REWARD_GOAL,
-        n_lags=N_LAGS,
-        plot_reward=PLOT_REWARD,
-        save_path=base_path,
-    )
+        df_seed = train_agent(
+            agent=agent,
+            env=env,
+            brain_name=brain_name,
+            epsilon=EPSILON,
+            epsilon_decay=EPSILON_DECAY,
+            epsilon_min=EPSILON_MIN,
+            n_episodes=N_EPISODES,
+            max_iter_episode=MAX_ITER_EPISODE,
+            reward_goal=REWARD_GOAL,
+            n_lags=N_LAGS,
+            plot_reward=PLOT_RESULTS,
+            save_path=base_path,
+        )
+        df = pd.concat([df, df_seed], axis=0, ignore_index=True)
+        df.to_csv(os.path.join(results_save_path, "training_log.csv"))
+
+    if PLOT_RESULTS:
+        create_seaborn_barplot(
+            df=df,
+            x="Seed",
+            y="N Episodes",
+            save_path=os.path.join(results_save_path, "average_training_episodes.png"),
+        )
+
+    env.close()
 
 
 if __name__ == "__main__":

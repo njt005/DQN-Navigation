@@ -34,13 +34,14 @@ The task is episodic, and in order to solve the environment, the agent must get 
 
     (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux_NoVis.zip) to obtain the environment.
 
-3. Place the file in the folder with this README and unzip (or decompress) the file.
-4. Based on which file was downloaded for your operating system, update ENV_PATH to the "OS folder/environment file" (e.g. Banana_Windows_x86_64/Banana.exe").
+4. Clone this repository
+5. Place the environment directory in the root of this repository and unzip (or decompress) the file.
+6. Based on which file was downloaded for your operating system, update ENV_PATH in train_agents.py to the "OS folder/environment file" (e.g. "Banana_Windows_x86_64/Banana.exe").
 
 ### Training an Agent
-1. Run train_agents.py within the conda environment. Training will automatically stop once the goal is reached.
+1. Run train_agents.py within the conda environment. Training will automatically stop once the goal is reached. Reduce N_TRAINING_SEEDS for less training iterations.
 2. Adjust global parameters in train_agent.py and observe agent performance.
 
 ### Evaluating an Agent
-1. If a new agent is trained, update the SAVED_MODEL filename in run_trained_agent.py to the filename based on the number of episodes achieved.
-2. Run the run_trained_agent.py within the conda environment.
+1. Update SEED in run_trained_agent.py as desired to load a trained agent.
+2. Run the run_trained_agent.py script within the conda environment.
